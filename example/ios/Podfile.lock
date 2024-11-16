@@ -1,28 +1,52 @@
 PODS:
-  - Flutter (1.0.0)
-  - image_picker (0.0.1):
+  - ffmpeg-kit-ios-full-gpl (6.0)
+  - ffmpeg_kit_flutter_full_gpl (6.0.3):
+    - ffmpeg_kit_flutter_full_gpl/full-gpl (= 6.0.3)
     - Flutter
+  - ffmpeg_kit_flutter_full_gpl/full-gpl (6.0.3):
+    - ffmpeg-kit-ios-full-gpl (= 6.0)
+    - Flutter
+  - Flutter (1.0.0)
+  - gal (1.0.0):
+    - Flutter
+    - FlutterMacOS
   - live_photos (0.0.1):
     - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
+  - ffmpeg_kit_flutter_full_gpl (from `.symlinks/plugins/ffmpeg_kit_flutter_full_gpl/ios`)
   - Flutter (from `Flutter`)
-  - image_picker (from `.symlinks/plugins/image_picker/ios`)
+  - gal (from `.symlinks/plugins/gal/darwin`)
   - live_photos (from `.symlinks/plugins/live_photos/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - ffmpeg-kit-ios-full-gpl
 
 EXTERNAL SOURCES:
+  ffmpeg_kit_flutter_full_gpl:
+    :path: ".symlinks/plugins/ffmpeg_kit_flutter_full_gpl/ios"
   Flutter:
     :path: Flutter
-  image_picker:
-    :path: ".symlinks/plugins/image_picker/ios"
+  gal:
+    :path: ".symlinks/plugins/gal/darwin"
   live_photos:
     :path: ".symlinks/plugins/live_photos/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
 
 SPEC CHECKSUMS:
-  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
-  image_picker: 50e7c7ff960e5f58faa4d1f4af84a771c671bc4a
+  ffmpeg-kit-ios-full-gpl: 80adc341962e55ef709e36baa8ed9a70cf4ea62b
+  ffmpeg_kit_flutter_full_gpl: 8d15c14c0c3aba616fac04fe44b3d27d02e3c330
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  gal: 61e868295d28fe67ffa297fae6dacebf56fd53e1
   live_photos: f8ea75c614600f80ee4366931c4d25f774f10951
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
 
-PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+PODFILE CHECKSUM: 7adbc9d59f05e1b01f554ea99b6c79e97f2214a2
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.15.2

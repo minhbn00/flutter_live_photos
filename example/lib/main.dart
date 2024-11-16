@@ -1,6 +1,12 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:gal/gal.dart';
 import 'package:live_photos/live_photos.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,8 +18,67 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final picker = ImagePicker();
-  String videoFile = '';
+  final _dio = Dio();
+
+  Future<void> saveWallpaper(String path) async {
+    final permission = await Gal.requestAccess(toAlbum: true);
+    if (!permission) return;
+    final cacheDir = await getApplicationDocumentsDirectory();
+    print("asdklandan");
+    print(cacheDir.path);
+
+    final videoFileName = path.fileName;
+    final videoFileNameExt = path.fileExtension;
+    File videoFile = File("${cacheDir.path}/$videoFileName");
+    if (await videoFile.exists()) await videoFile.delete();
+    print("here ${videoFile.path}");
+    try {
+      await _dio.download(
+        path,
+        videoFile.path,
+      );
+      if (!(await videoFile.exists())) {
+        throw Exception("cannot download video or photo files");
+      }
+      if (videoFileNameExt != 'mp4') {
+        videoFile = await convertVideoToMp4(
+          inputFile: videoFile,
+          outputFile: File("${cacheDir.path}/a.mp4"),
+        );
+      }
+      await LivePhotos.generate(localPath: videoFile.path).then((value) {
+        print("complete $value");
+      });
+    } catch (e) {
+      print("failed to save wallpaper: $e");
+    }
+  }
+
+  Future<File> convertVideoToMp4({
+    required File inputFile,
+    required File outputFile,
+  }) async {
+    if (await outputFile.exists()) await outputFile.delete();
+    final ffmpegCommand = [
+      '-i',
+      inputFile.path,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'ultrafast',
+      '-c:a',
+      'copy',
+      outputFile.path,
+    ];
+    if (kDebugMode) {
+      print("[FFmpegSource] executing command: ${ffmpegCommand.join(" ")}");
+    }
+    await FFmpegKit.execute(ffmpegCommand.join(" "));
+    if (!(await outputFile.exists())) {
+      throw Exception("Output file not exists after execute ffmpeg command");
+    }
+    return outputFile;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +92,26 @@ class _MyAppState extends State<MyApp> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            GenFromURLButton(),
-            const SizedBox(height: 60),
             ElevatedButton(
-              child: Text('Select local video'),
-              onPressed: () async {
-                final pickedFile = await picker.getVideo(source: ImageSource.gallery);
-                if (pickedFile != null) {
-                  setState(() {
-                    videoFile = pickedFile.path;
-                  });
-                }
+              onPressed: () {
+                saveWallpaper(
+                  "https://ringtones-for-iphone.s3.amazonaws.com/media/wallpaper/original/16774253397529621364408.webm",
+                );
               },
+              child: Text(
+                ("Do"),
+              ),
             ),
-            Text('path: $videoFile'),
-            const SizedBox(height: 10),
-            GenFromLocalPathButton(videoFile),
+            ElevatedButton(
+              onPressed: () {
+                saveWallpaper(
+                  "https://ringtones-for-iphone.s3.amazonaws.com/media/wallpaper/original/16572080208999900080800.mov",
+                );
+              },
+              child: Text(
+                ("Do2"),
+              ),
+            )
           ],
         )),
       ),
@@ -50,99 +119,12 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class GenFromURLButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      child: Text('generate from url'),
-      onPressed: () {
-        LivePhotos.generate(
-          videoURL: "https://img.gifmagazine.net/gifmagazine/images/3870471/original.mp4",
-        ).then(
-          (value) {
-            if (value) {
-              print("Success");
-              showDialog(
-                context: context,
-                builder: (BuildContext ctx) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    content: Text('You can set the downloaded gif in [Settings] > [Wallpaper].'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                      TextButton(
-                        child: Text('Open'),
-                        onPressed: () => LivePhotos.openSettings(),
-                      )
-                    ],
-                  );
-                },
-              );
-            } else {
-              print("Failed");
-            }
-          },
-        ).catchError(
-          (e) => print(e),
-        );
-      },
-    );
+extension FileStringExtension on String {
+  String get fileName {
+    return split('/').lastOrNull ?? "";
   }
-}
 
-class GenFromLocalPathButton extends StatelessWidget {
-  const GenFromLocalPathButton(this.path);
-
-  final String path;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      child: Text('generate from local path'),
-      onPressed: () {
-        if (path == '') {
-          return;
-        }
-        LivePhotos.generate(
-          localPath: path,
-        ).then(
-          (value) {
-            if (value) {
-              print("Success");
-              showDialog(
-                context: context,
-                builder: (BuildContext ctx) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    content: Text('You can set the downloaded gif in [Settings] > [Wallpaper].'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                      TextButton(
-                        child: Text('Open'),
-                        onPressed: () => LivePhotos.openSettings(),
-                      )
-                    ],
-                  );
-                },
-              );
-            } else {
-              print("Failed");
-            }
-          },
-        ).catchError(
-          (e) => print(e),
-        );
-      },
-    );
+  String get fileExtension {
+    return split('.').lastOrNull ?? "";
   }
 }

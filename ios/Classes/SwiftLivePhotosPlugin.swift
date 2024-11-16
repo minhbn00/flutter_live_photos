@@ -473,6 +473,7 @@ class LivePhoto {
             assetWriter?.add(videoWriterInput)
             // Create Audio Reader Output & Writer Input
             if let audioTrack = videoAsset.tracks(withMediaType: .audio).first {
+                print("generate audio reader")
                 do {
                     let _audioReader = try AVAssetReader(asset: videoAsset)
                     let _audioReaderOutput = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: nil)
@@ -483,9 +484,14 @@ class LivePhoto {
                     _audioWriterInput.expectsMediaDataInRealTime = false
                     assetWriter?.add(_audioWriterInput)
                     audioWriterInput = _audioWriterInput
+                    print("generate audio reader complete")
                 } catch {
+                    print("generate audio reader error")
                     print(error)
                 }
+            } else {
+                audioReader = nil
+                print("no audio track to generate ")
             }
             // Create necessary identifier metadata and still image time metadata
             let assetIdentifierMetadata = metadataForAssetID(assetIdentifier)
@@ -512,6 +518,7 @@ class LivePhoto {
                     }
                 }
             }
+            print("Start writing video")
             // Start writing video
             if videoReader?.startReading() ?? false {
                 videoWriterInput.requestMediaDataWhenReady(on: DispatchQueue(label: "videoWriterInputQueue")) {
@@ -535,6 +542,7 @@ class LivePhoto {
                 writingVideoFinished = true
                 didCompleteWriting()
             }
+            print("Writing video complete")
             // Start writing audio
             if audioReader?.startReading() ?? false {
                 audioWriterInput?.requestMediaDataWhenReady(on: DispatchQueue(label: "audioWriterInputQueue")) {
@@ -552,6 +560,7 @@ class LivePhoto {
                 writingAudioFinished = true
                 didCompleteWriting()
             }
+            print("Writing audio complete")
         } catch {
             print(error)
             completion(nil)
@@ -615,7 +624,7 @@ fileprivate extension AVAsset {
                     
                     let videoReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: nil)
                     videoReader.add(videoReaderOutput)
-                    
+                    print("start reading video ....")
                     videoReader.startReading()
                     
                     // count frames
